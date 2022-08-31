@@ -20,9 +20,15 @@ package conf
 import "os"
 
 var (
-	ProduceType = os.Getenv("PRODUCE_TYPE")
+	ConsumeType = os.Getenv("CONSUME_TYPE")
 )
 
 const (
-	ProduceTypePulsar = "pulsar"
+	ConsumeTypePulsar = "pulsar"
+	ConsumeTypeKafka  = "kafka"
+)
+
+const (
+	KafkaClientSarama = "sarama"
+	KafkaClientGo     = "kafka-go"
 )

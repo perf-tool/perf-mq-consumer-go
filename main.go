@@ -22,17 +22,20 @@ import (
 	"os"
 	"os/signal"
 	"perf-mq-producer-go/conf"
+	"perf-mq-producer-go/kafka"
 	"perf-mq-producer-go/pulsar"
 )
 
 func main() {
 	logrus.Info("performance producer start")
-	switch conf.ProduceType {
-	case conf.ProduceTypePulsar:
+	switch conf.ConsumeType {
+	case conf.ConsumeTypePulsar:
 		err := pulsar.Start()
 		if err != nil {
 			panic(err)
 		}
+	case conf.ConsumeTypeKafka:
+		kafka.Start()
 	}
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
