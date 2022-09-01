@@ -22,9 +22,23 @@ import (
 	"perf-mq-producer-go/util"
 )
 
+// pulsar server environment config
 var (
 	PulsarHost        = util.GetEnvStr("PULSAR_HOST", "localhost")
 	PulsarPort        = util.GetEnvInt("PULSAR_PORT", 6650)
 	PulsarTopic       = os.Getenv("PULSAR_TOPIC")
 	PulsarMessageSize = util.GetEnvInt("PULSAR_MESSAGE_SIZE", 1024)
+)
+
+// kafka server environment config
+var (
+	KafkaHost            = util.GetEnvStr("KAFKA_HOST", "localhost")
+	KafkaPort            = util.GetEnvInt("KAFKA_PORT", 9092)
+	KafkaTopic           = util.GetEnvStr("KAFKA_TOPIC", "testTopic")
+	KafkaAutoOffsetReset = util.GetEnvStr("AUTO_OFFSET_RESET_CONFIG", "latest")
+	KafkaGroupID         = os.Getenv("KAFKA_GROUP_ID")
+	KafkaClient          = util.GetEnvStr("KAFKA_CLIENT", KafkaClientSarama)
+	KafkaSaslEnable      = util.GetEnvBool("KAFKA_SASL_ENABLE", false)
+	KafkaSaslUsername    = os.Getenv("KAFKA_SASL_USERNAME")
+	KafkaSaslPassword    = os.Getenv("KAFKA_SASL_PASSWORD")
 )
