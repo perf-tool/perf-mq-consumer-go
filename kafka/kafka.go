@@ -67,7 +67,7 @@ func (kg *kafkaGo) initial(ctx context.Context) {
 		Topic:       conf.KafkaTopic,
 		Dialer:      dialer,
 		MinBytes:    1024 * 10,    // 10kb
-		MaxBytes:    1024 * 10000, // 10mb
+		MaxBytes:    1024 * 1024 * 10, // 10mb
 		StartOffset: offsetMode,
 	})
 }
