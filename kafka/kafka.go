@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
+	confluent "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/sirupsen/logrus"
@@ -36,6 +37,7 @@ type iConsumer interface {
 
 var _ iConsumer = (*kafkaGo)(nil)
 var _ iConsumer = (*kafkaSarama)(nil)
+var _ iConsumer = (*kafkaConfluent)(nil)
 
 type kafkaGo struct {
 	reader *kafka.Reader
@@ -89,17 +91,13 @@ type kafkaSarama struct {
 
 func (ks *kafkaSarama) initial(ctx context.Context) {
 	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
 	if conf.KafkaSaslEnable {
 		config.Net.SASL.Enable = true
 		config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 		config.Net.SASL.User = conf.KafkaSaslUsername
 		config.Net.SASL.Password = conf.KafkaSaslPassword
 	}
-	consumer, err := sarama.NewConsumer([]string{fmt.Sprintf("%s:%d",
-		conf.KafkaHost, conf.KafkaPort)}, config)
+	consumer, err := sarama.NewConsumer([]string{fmt.Sprintf("%s:%d", conf.KafkaHost, conf.KafkaPort)}, config)
 	if err != nil {
 		logrus.Fatalf("init consumer failed: %+v", err)
 	}
@@ -111,7 +109,7 @@ func (ks *kafkaSarama) consume(ctx context.Context, topic string) {
 	// count topic partition
 	partitions, err := ks.reader.Partitions(topic)
 	if err != nil {
-		logrus.Errorf("count topic partitions failed: %+v", err)
+		logrus.Fatalf("count topic partitions failed: %+v", err)
 	}
 	var wg sync.WaitGroup
 	wg.Add(len(partitions))
@@ -119,6 +117,47 @@ func (ks *kafkaSarama) consume(ctx context.Context, topic string) {
 		go consumeSaramaByPartition(ks.reader, conf.KafkaTopic, partitionId, &wg)
 	}
 	wg.Wait()
+}
+
+type kafkaConfluent struct {
+	reader *confluent.Consumer
+}
+
+func (kc *kafkaConfluent) initial(ctx context.Context) {
+	// configmap: https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
+	var configmap = &confluent.ConfigMap{
+		"bootstrap.servers":        fmt.Sprintf("%s:%d", conf.KafkaHost, conf.KafkaPort),
+		"client.id":                "pf-mq",
+		"group.id":                 "pf-mq", // need
+		"auto.offset.reset":        conf.KafkaAutoOffsetReset,
+		"enable.auto.commit":       true,
+		"allow.auto.create.topics": true,
+	}
+	if conf.KafkaSaslEnable {
+		(*configmap)["sasl.mechanisms"] = "PLAIN"
+		(*configmap)["security.protocol"] = "SASL_PLAINTEXT"
+		(*configmap)["sasl.username"] = conf.KafkaSaslUsername
+		(*configmap)["sasl.password"] = conf.KafkaSaslPassword
+	}
+	c, err := confluent.NewConsumer(configmap)
+	if err != nil {
+		logrus.Fatalf("init consumer failed: %+v", err)
+	}
+	kc.reader = c
+}
+
+func (kc *kafkaConfluent) consume(ctx context.Context, topic string) {
+	defer kc.reader.Close()
+	if err := kc.reader.SubscribeTopics([]string{conf.KafkaTopic}, nil); err != nil {
+		logrus.Fatalf("subscribe topic failed: %+v", err)
+	}
+	for {
+		msg, err := kc.reader.ReadMessage(-1)
+		if err != nil {
+			logrus.Fatalf("Consumer error: %v (%v)", err, msg)
+		}
+		logrus.Infof("Message on %s: %s", msg.TopicPartition, string(msg.Value))
+	}
 }
 
 func Start() {
@@ -135,6 +174,8 @@ func startConsumer() {
 		consumer = &kafkaSarama{}
 	case conf.KafkaClientGo:
 		consumer = &kafkaGo{}
+	case conf.KafkaClientConfluent:
+		consumer = &kafkaConfluent{}
 	default:
 		logrus.Errorf("unsupport client: %+v", conf.KafkaClient)
 		return

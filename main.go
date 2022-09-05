@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	logrus.Info("performance producer start")
+	logrus.Info("performance consumer start")
 	switch conf.ConsumeType {
 	case conf.ConsumeTypePulsar:
 		err := pulsar.Start()
