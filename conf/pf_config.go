@@ -29,6 +29,7 @@ const (
 )
 
 const (
-	KafkaClientSarama = "sarama"
-	KafkaClientGo     = "kafka-go"
+	KafkaClientGo        = "kafka-go"
+	KafkaClientSarama    = "sarama"
+	KafkaClientConfluent = "confluent"
 )
