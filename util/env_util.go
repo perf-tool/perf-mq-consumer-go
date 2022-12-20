@@ -54,6 +54,18 @@ func GetEnvInt64(key string, value int64) int64 {
 	return res
 }
 
+func GetEnvFloat64(key string, value float64) float64 {
+	aux := os.Getenv(key)
+	if aux == "" {
+		return value
+	}
+	res, err := strconv.ParseFloat(aux, 64)
+	if err != nil {
+		return value
+	}
+	return res
+}
+
 func GetEnvBool(key string, value bool) bool {
 	aux := os.Getenv(key)
 	if aux != "" {
