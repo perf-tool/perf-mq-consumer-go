@@ -26,6 +26,7 @@ import (
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/sirupsen/logrus"
 	"perf-mq-producer-go/conf"
+	"perf-mq-producer-go/trace"
 	"sync"
 	"time"
 )
@@ -35,9 +36,13 @@ type iConsumer interface {
 	consume(ctx context.Context, topic string)
 }
 
-var _ iConsumer = (*kafkaGo)(nil)
-var _ iConsumer = (*kafkaSarama)(nil)
-var _ iConsumer = (*kafkaConfluent)(nil)
+var (
+	_ iConsumer = (*kafkaGo)(nil)
+	_ iConsumer = (*kafkaSarama)(nil)
+	_ iConsumer = (*kafkaConfluent)(nil)
+
+	globalTracer trace.Tracing
+)
 
 type kafkaGo struct {
 	reader *kafka.Reader
@@ -68,7 +73,7 @@ func (kg *kafkaGo) initial(ctx context.Context) {
 		GroupTopics: nil,
 		Topic:       conf.KafkaTopic,
 		Dialer:      dialer,
-		MinBytes:    1024 * 10,    // 10kb
+		MinBytes:    1024 * 10,        // 10kb
 		MaxBytes:    1024 * 1024 * 10, // 10mb
 		StartOffset: offsetMode,
 	})
@@ -116,6 +121,7 @@ func (ks *kafkaSarama) consume(ctx context.Context, topic string) {
 	for _, partitionId := range partitions {
 		go consumeSaramaByPartition(ks.reader, conf.KafkaTopic, partitionId, &wg)
 	}
+
 	wg.Wait()
 }
 
@@ -161,6 +167,17 @@ func (kc *kafkaConfluent) consume(ctx context.Context, topic string) {
 }
 
 func Start() {
+	// init global trace
+	if conf.TracEnable {
+		globalTracer = &trace.SkyGo{
+			Host:       conf.SkyWalkingHost,
+			Port:       conf.SkyWalkingPort,
+			SampleRate: conf.SkyWalkingSample,
+			Enable:     true,
+		}
+		globalTracer.NewProvider()
+	}
+
 	for i := 0; i < conf.RoutineNum; i++ {
 		go startConsumer()
 	}
@@ -200,6 +217,16 @@ func consumeSaramaByPartition(consumer sarama.Consumer, topic string, partitionI
 	}
 	defer partitionConsumer.Close()
 	for message := range partitionConsumer.Messages() {
+		if conf.TracEnable {
+			var traceBody = new(trace.SkyGoCarrier)
+			if err := traceBody.Unmarshal(message.Value); err != nil {
+				logrus.Errorf("unmarshal trace body failed: %v", err)
+				continue
+			}
+			globalTracer.NewMqSpan(context.Background(), "/Service/Kafka/Consumer", "MQ-Consumer",
+				fmt.Sprintf("[Consumer] partitionid: %d; offset:%d, value: %s\n", message.Partition,
+					message.Offset, string(traceBody.Message)), traceBody.GetHeaders())
+		}
 		logrus.Infof("[Consumer] partitionid: %d; offset:%d, value: %s\n", message.Partition, message.Offset, string(message.Value))
 	}
 }
