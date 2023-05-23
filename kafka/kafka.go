@@ -25,7 +25,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/sirupsen/logrus"
-	"perf-mq-producer-go/conf"
+	"perf-mq-consumer-go/conf"
 	"sync"
 	"time"
 )
@@ -68,7 +68,7 @@ func (kg *kafkaGo) initial(ctx context.Context) {
 		GroupTopics: nil,
 		Topic:       conf.KafkaTopic,
 		Dialer:      dialer,
-		MinBytes:    1024 * 10,    // 10kb
+		MinBytes:    1024 * 10,        // 10kb
 		MaxBytes:    1024 * 1024 * 10, // 10mb
 		StartOffset: offsetMode,
 	})

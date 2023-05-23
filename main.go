@@ -21,9 +21,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
-	"perf-mq-producer-go/conf"
-	"perf-mq-producer-go/kafka"
-	"perf-mq-producer-go/pulsar"
+	"perf-mq-consumer-go/conf"
+	"perf-mq-consumer-go/kafka"
+	"perf-mq-consumer-go/pulsar"
 )
 
 func main() {

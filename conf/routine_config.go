@@ -18,7 +18,7 @@
 package conf
 
 import (
-	"perf-mq-producer-go/util"
+	"perf-mq-consumer-go/util"
 )
 
 var (

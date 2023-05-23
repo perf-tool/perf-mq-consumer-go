@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/sirupsen/logrus"
-	"perf-mq-producer-go/conf"
-	"perf-mq-producer-go/util"
+	"perf-mq-consumer-go/conf"
+	"perf-mq-consumer-go/util"
 )
 
 func Start() error {
@@ -34,12 +34,12 @@ func Start() error {
 		return err
 	}
 	for i := 0; i < conf.RoutineNum; i++ {
-		go startProducer(client)
+		go startConsumer(client)
 	}
 	return nil
 }
 
-func startProducer(client pulsar.Client) {
+func startConsumer(client pulsar.Client) {
 	producer, err := client.CreateProducer(pulsar.ProducerOptions{
 		Topic: conf.PulsarTopic,
 	})

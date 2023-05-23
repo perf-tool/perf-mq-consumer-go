@@ -20,11 +20,11 @@
 FROM perftool/compile:go AS build
 COPY . /opt/perf/compile
 WORKDIR /opt/perf/compile
-RUN go build -o pf-producer .
+RUN go build -o pf-consumer .
 
 
 FROM perftool/base
 
-COPY --from=build /opt/perf/compile/pf-producer /opt/perf/pf-producer
+COPY --from=build /opt/perf/compile/pf-consumer /opt/perf/pf-consumer
 
-CMD ["/usr/bin/dumb-init", "/opt/perf/pf-producer"]
+CMD ["/usr/bin/dumb-init", "/opt/perf/pf-consumer"]
