@@ -19,7 +19,7 @@ package conf
 
 import (
 	"os"
-	"perf-mq-producer-go/util"
+	"perf-mq-consumer-go/util"
 )
 
 // pulsar server environment config

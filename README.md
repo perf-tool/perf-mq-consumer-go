@@ -1,1 +1,1 @@
-# perf-mq-producer-go
+# perf-mq-consumer-go

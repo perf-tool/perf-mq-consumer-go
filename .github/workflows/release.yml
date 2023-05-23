@@ -24,16 +24,12 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
+permissions: write-all
 
 jobs:
   push_to_registries:
     name: Push Docker image to multiple registries
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -50,33 +46,13 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: perftool/perf-mq-producer:go
+          tags: perftool/perf-mq-consumer:go
           platforms: linux/amd64,linux/arm64
       - name: Save Docker Images
-        run: docker pull perftool/perf-mq-producer:go;docker save perftool/perf-mq-producer:go -o perf-mq-producer-go.tar.gz
-      - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        run: docker pull perftool/perf-mq-consumer:go;docker save perftool/perf-mq-consumer:go -o perf-mq-consumer-go.tar.gz
+      - name: Release
+        use: shoothzj/latest-release-action@v1
         with:
-          delete_release: true
-          tag_name: latest_docker_image
+          files: perf-mq-consumer-go.tar.gz
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-
-      - name: Tag release
-        uses: tvdias/github-tagger@v0.0.2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          tag: latest_docker_image
-
-      # Creates the new release with the binary as a release asset.
-      # If the previous Action was skipped, then this keeps the same tag as the
-      # previous release.
-      - name: Create new release
-        uses: softprops/action-gh-release@v1
-        with:
-          body: "Latest docker image"
-          draft: false
-          name: "latest docker image"
-          tag_name: latest_docker_image
-          files: perf-mq-producer-go.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
