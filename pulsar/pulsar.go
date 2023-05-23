@@ -23,7 +23,6 @@ import (
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/sirupsen/logrus"
 	"perf-mq-consumer-go/conf"
-	"perf-mq-consumer-go/util"
 )
 
 func Start() error {
@@ -40,20 +39,19 @@ func Start() error {
 }
 
 func startConsumer(client pulsar.Client) {
-	producer, err := client.CreateProducer(pulsar.ProducerOptions{
+	consumer, err := client.Subscribe(pulsar.ConsumerOptions{
 		Topic: conf.PulsarTopic,
 	})
 	if err != nil {
-		logrus.Errorf("create producer %s error: %v", conf.PulsarTopic, err)
+		logrus.Errorf("create consumer %s error: %v", conf.PulsarTopic, err)
 	}
 	for {
-		messageID, err := producer.Send(context.Background(), &pulsar.ProducerMessage{
-			Payload: []byte(util.RandStr(conf.PulsarMessageSize)),
-		})
+		message, err := consumer.Receive(context.Background())
 		if err != nil {
-			logrus.Errorf("send message %s error: %v", conf.PulsarTopic, err)
+			logrus.Errorf("receive message %s error: %v", conf.PulsarTopic, err)
 		} else {
-			logrus.Infof("send message %s success, messageID: %s", conf.PulsarTopic, messageID)
+			logrus.Infof("receive message success, message id: %s, topic: %s",
+				message.ID(), message.Topic())
 		}
 	}
 }
