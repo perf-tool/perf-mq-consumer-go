@@ -17,13 +17,12 @@
 # under the License.
 #
 
-FROM perftool/compile:go AS build
+FROM shoothzj/compile:go AS build
 COPY . /opt/perf/compile
 WORKDIR /opt/perf/compile
 RUN go build -o pf-consumer .
 
-
-FROM perftool/base
+FROM shoothzj/base
 
 COPY --from=build /opt/perf/compile/pf-consumer /opt/perf/pf-consumer
 

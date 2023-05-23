@@ -51,7 +51,7 @@ jobs:
       - name: Save Docker Images
         run: docker pull perftool/perf-mq-consumer:go;docker save perftool/perf-mq-consumer:go -o perf-mq-consumer-go.tar.gz
       - name: Release
-        use: shoothzj/latest-release-action@v1
+        uses: shoothzj/latest-release-action@v1
         with:
           files: perf-mq-consumer-go.tar.gz
         env:
