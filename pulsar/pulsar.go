@@ -40,7 +40,9 @@ func Start() error {
 
 func startConsumer(client pulsar.Client) {
 	consumer, err := client.Subscribe(pulsar.ConsumerOptions{
-		Topic: conf.PulsarTopic,
+		Topic:            conf.PulsarTopic,
+		SubscriptionName: conf.PulsarSubscriptionName,
+		Type:             conf.PulsarSubscriptionType,
 	})
 	if err != nil {
 		logrus.Errorf("create consumer %s error: %v", conf.PulsarTopic, err)
