@@ -21,7 +21,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
-	confluent "github.com/confluentinc/confluent-kafka-go/kafka"
+	confluent "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/sirupsen/logrus"
