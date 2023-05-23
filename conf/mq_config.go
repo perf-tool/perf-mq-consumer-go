@@ -18,16 +18,39 @@
 package conf
 
 import (
+	"github.com/apache/pulsar-client-go/pulsar"
 	"os"
 	"perf-mq-consumer-go/util"
 )
 
+const (
+	Exclusive = "Exclusive"
+
+	Shared = "Shared"
+
+	Failover = "Failover"
+
+	KeyShared = "KeyShared"
+)
+
+var SubTypeEnum = map[string]pulsar.SubscriptionType{
+	"Exclusive": pulsar.Exclusive,
+
+	"Shared": pulsar.Shared,
+
+	"Failover": pulsar.Failover,
+
+	"KeyShared": pulsar.KeyShared,
+}
+
 // pulsar server environment config
 var (
-	PulsarHost        = util.GetEnvStr("PULSAR_HOST", "localhost")
-	PulsarPort        = util.GetEnvInt("PULSAR_PORT", 6650)
-	PulsarTopic       = os.Getenv("PULSAR_TOPIC")
-	PulsarMessageSize = util.GetEnvInt("PULSAR_MESSAGE_SIZE", 1024)
+	PulsarHost             = util.GetEnvStr("PULSAR_HOST", "localhost")
+	PulsarPort             = util.GetEnvInt("PULSAR_PORT", 6650)
+	PulsarTopic            = os.Getenv("PULSAR_TOPIC")
+	PulsarMessageSize      = util.GetEnvInt("PULSAR_MESSAGE_SIZE", 1024)
+	PulsarSubscriptionName = util.GetEnvStr("PULSAR_SUBSCRIPTION_NAME", "my-sub")
+	PulsarSubscriptionType = SubTypeEnum[util.GetEnvStr("PULSAR_SUBSCRIPTION_TYPE", Failover)]
 )
 
 // kafka server environment config
