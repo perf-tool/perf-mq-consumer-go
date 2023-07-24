@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/Shopify/sarama v1.38.1
 	github.com/apache/pulsar-client-go v0.11.0
-	github.com/confluentinc/confluent-kafka-go/v2 v2.1.1
+	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
 	github.com/segmentio/kafka-go v0.4.42
 	github.com/sirupsen/logrus v1.9.2
 )
